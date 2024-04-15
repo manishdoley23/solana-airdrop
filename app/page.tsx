@@ -10,36 +10,35 @@ import { GithubIcon } from "@/components/icons";
 import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { Input } from "@nextui-org/input";
 import { Button } from "@nextui-org/button";
-import { useState } from "react";
 import { Bounce, ToastContainer, toast } from "react-toastify";
 
+import { getSol } from "./actions/get-sol";
+
 import "react-toastify/dist/ReactToastify.css";
+import { useState } from "react";
 
 export default function Home() {
 	const [airDropAddress, setAirDropAddress] = useState("");
 	const [solAmount, setSolAmount] = useState(0);
-	const [solNetwork, setSolNetwork] = useState("");
+	const [solNetwork, setSolNetwork] = useState(
+		"https://api.devnet.solana.com"
+	);
+	const [loading, setLoading] = useState(false);
 
-	const getSolHandler = async () => {
-		if (solNetwork === "" || solAmount === 0 || airDropAddress === "") {
-			toast("Please fill all the fields");
-			return;
+	const getSolHandler = async (e: React.FormEvent) => {
+		e.preventDefault();
+		setLoading(true);
+		try {
+			const response = await getSol({
+				solAddress: airDropAddress,
+				solAmount,
+				solNetwork,
+			});
+			toast("Airdrop successful: " + response?.signature);
+		} catch {
+			toast("Airdrop failed.");
 		}
-
-		const connection = new Connection(solNetwork, "confirmed");
-		const address = new PublicKey(airDropAddress);
-		const signature = await connection.requestAirdrop(
-			address,
-			solAmount * LAMPORTS_PER_SOL
-		);
-		const { blockhash, lastValidBlockHeight } =
-			await connection.getLatestBlockhash();
-		const res = await connection.confirmTransaction({
-			blockhash,
-			lastValidBlockHeight,
-			signature,
-		});
-		console.log("res", res);
+		setLoading(false);
 	};
 
 	return (
@@ -57,60 +56,56 @@ export default function Home() {
 				theme="dark"
 				transition={Bounce}
 			/>
-			<div className="flex flex-col">
-				<Input
-					key={"inside"}
-					type="text"
-					label="Enter solana account address"
-					labelPlacement={"inside"}
-					radius="sm"
-					onChange={(e) => {
-						setAirDropAddress(e.target.value);
-					}}
-				/>
-				<div className="w-full flex gap-10 items-center mt-10">
+			<form onSubmit={getSolHandler}>
+				<div className="flex flex-col">
 					<Input
 						key={"inside"}
-						type="number"
-						label="Airdrop amount"
+						type="text"
+						label="Enter solana account address"
 						labelPlacement={"inside"}
 						radius="sm"
-						endContent={"SOL"}
-						onChange={(e) => setSolAmount(parseInt(e.target.value))}
+						name="sol-address"
+						onChange={(e) => {
+							setAirDropAddress(e.target.value);
+						}}
 					/>
+					<div className="w-full flex gap-10 items-center mt-10">
+						<Input
+							key={"inside"}
+							type="number"
+							label="Airdrop amount"
+							labelPlacement={"inside"}
+							radius="sm"
+							endContent={"SOL"}
+							name="sol-amount"
+							onChange={(e) =>
+								setSolAmount(parseInt(e.target.value))
+							}
+						/>
 
-					<div className="flex flex-col justify-center gap-5">
-						<Button
-							onClick={() =>
-								setSolNetwork("https://api.devnet.solana.com")
-							}
-							variant="bordered"
-							radius="sm"
+						{/* <div className="flex flex-col justify-center gap-5"> */}
+						<select
+							className="px-2 py-1 rounded-md"
+							name="sol-network"
+							onChange={(e) => setSolNetwork(e.target.value)}
 						>
-							DEVNET
-						</Button>
-						<Button
-							onClick={() =>
-								setSolNetwork("https://api.testnet.solana.com")
-							}
-							variant="bordered"
-							radius="sm"
-						>
-							TESTNET
-						</Button>
+							<option
+								className="px-2 py-1"
+								value={"https://api.devnet.solana.com"}
+							>
+								devnet
+							</option>
+							<option value={"https://api.testnet.solana.com"}>
+								testnet
+							</option>
+						</select>
 					</div>
+
+					<Button className="mt-5" radius="sm" type="submit">
+						{loading ? "Loading..." : "GET SOL"}
+					</Button>
 				</div>
-
-				{solNetwork !== "" && (
-					<p className="bg-green-800 px-3 py-1 text-white rounded-md mt-5">
-						{solNetwork}
-					</p>
-				)}
-
-				<Button onClick={getSolHandler} className="mt-5" radius="sm">
-					GET SOL
-				</Button>
-			</div>
+			</form>
 		</section>
 	);
 }
