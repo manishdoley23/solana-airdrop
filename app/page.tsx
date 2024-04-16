@@ -1,21 +1,12 @@
 "use client";
 
-import { Link } from "@nextui-org/link";
-import { Code } from "@nextui-org/code";
-import { Snippet } from "@nextui-org/snippet";
-import { button as buttonStyles } from "@nextui-org/theme";
-import { siteConfig } from "@/config/site";
-import { title, subtitle } from "@/components/primitives";
-import { GithubIcon } from "@/components/icons";
-import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
+import { useState } from "react";
 import { Input } from "@nextui-org/input";
 import { Button } from "@nextui-org/button";
 import { Bounce, ToastContainer, toast } from "react-toastify";
-
 import { getSol } from "./actions/get-sol";
 
 import "react-toastify/dist/ReactToastify.css";
-import { useState } from "react";
 
 export default function Home() {
 	const [airDropAddress, setAirDropAddress] = useState("");
@@ -38,6 +29,9 @@ export default function Home() {
 		} catch {
 			toast("Airdrop failed.");
 		}
+		setAirDropAddress("");
+		setSolAmount(0);
+		setSolNetwork("https://api.devnet.solana.com");
 		setLoading(false);
 	};
 
