@@ -1,3 +1,3 @@
-# Solana airdrop devnet, testnest
+# Solana Devnet/Testnet Airdrop
 
-Enter your public address get devnet/testnet sol [WIP]
+Airdrop sol to your wallet [website](https://www.github.com/octokatherine)
